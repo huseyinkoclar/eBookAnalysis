@@ -2,31 +2,17 @@ import nltk
 #nltk.download('stopwords')
 from nltk.corpus import stopwords
 from operator import itemgetter
+from bs4 import BeautifulSoup
+import urllib
+import requests
 
 bookNumber = 0
 
 stopWords = set(stopwords.words('english'))
 
-punc = [',','.','?',':',';','-','!','(',')','/','>','<','=','#','+']
+punc = [',','.','?',':',';','-','!','(',')','/','>','<','=','#','+','"','[',']',"'",'*','_','-']
 
-def choosen1(bookName1):
-    file = open(bookName1, encoding="utf8")
-    words = file.read()
-    words = words.lower()
-    file.close()
-    return words
-
-def choosen2(bookName1,bookName2):
-    file = open(bookName1, encoding="utf8")
-    words = file.read()
-    words = words.lower()
-    file.close()
-    file = open(bookName2,encoding="utf8")
-    words1 = file.read()
-    words1 = words1.lower()
-    file.close()
-    return words, words1
-
+#DELETING PUNCTIATIONS IN TEXT
 def cleanpunctuations(text):
     for i in range(len(text)):
         for j in range(len(punc)):
@@ -36,12 +22,15 @@ def cleanpunctuations(text):
                text = text.replace(punc[j],'')
     return text.split()
 
+#DELETING STOP WORDS IN TEXT
 def cleanstopwords(text):
     return [word for word in text if word not in stopWords]
 
+#DELETING DIGITS IN THE TEXT
 def cleandigits(text):
     return [word for word in text if not word.isdigit()]
 
+#COUNTING OF WORDS
 def countwords(text):
     freq_list = []
     words_list= []
@@ -57,6 +46,7 @@ def countwords(text):
             freq_list[i] = sorted_list[i][1]
     return words_list,freq_list
 
+#TOTAL AND RANKING OF FREQUENCIES IN 2 BOOK OPTIONS
 def sumOfFreq(word_list,freq_list,word1_list,freq1_list):
     sumwords = []
     sumfreq = []
@@ -81,25 +71,96 @@ def sumOfFreq(word_list,freq_list,word1_list,freq1_list):
             if(word1_list[k] == sumwords[i]):
                 exfreq2 = freq1_list[k]
                 break
-        print(i , sumwords[i], "      " ,exfreq1 ,"     ", exfreq2, "     " , sumfreq[i])
+        print(i+1 , sumwords[i], "      " ,exfreq1 ,"     ", exfreq2, "     " , sumfreq[i])
 
-
-
-
-
+#CREATING DISTINCT WORD TABLES WITH 2 BOOK OPTIONS
+def distincWords(word_list,freq_list,word1_list,freq1_list):
+    print("Book1:")
+    counter = 0
+    for i in range(len(word_list)):
+        flag = 0
+        for j in range(len(word1_list)):
+            if(word_list[i]==word1_list[j]):
+                flag = 1
+                break
+        if(flag == 0):
+            counter += 1
+            print(counter , word_list[i],"    ",freq_list[i])
+        if counter == 20:
+            break
+    print("Book2:")
+    counter = 0
+    for i in range(len(word1_list)):
+        flag = 0
+        for j in range(len(word_list)):
+            if(word1_list[i]==word_list[j]):
+                flag = 1
+                break
+        if(flag == 0):
+            counter += 1
+            print(counter , word1_list[i],"    ",freq1_list[i])
+        if counter == 20:
+            break
+        
+#PRINT HIGHEST 20 FREQUENCY WORDS
 def printlist1(words_list,freq_list):
     for i in range(20):
         print(words_list[i] , freq_list[i])
 
+#WEB SCRAPING BY USER RECEIVED BOOK NAME
+def webScraping(bookName,bookName2):
+    #BOOK 1: Non-Programmer's Tutorial for Python 2.6
+    website = "https://en.wikibooks.org/wiki/" + bookName + "/Print_version"
+    website1 = "https://en.wikibooks.org/wiki/" + bookName2 + "/Print_version"
+    if(bookName2==""):
+        r = requests.get(website)
+        if(r.status_code != 200):
+            print("bulamadim")
+        else:
+            book = ""
+            soup = BeautifulSoup(r.content,'html.parser')
+            paragraphs = soup.find('div', {"class":"mw-parser-output"} ).find_all('p')
+            for paragraph in paragraphs:
+                book += " " + str(paragraph.text)
+            paragraphs = soup.find('div', {"class":"mw-content-ltr"} ).find_all('span')
+            for paragraph in paragraphs:
+                book += " " + str(paragraph.text)
+            print(book.lower())
+            return book.lower()
+    else:
+        r1 = requests.get(website1)
+        r = requests.get(website)
+        if(r.status_code != 200 or r1.status_code != 200):
+            print("bulamadim")
+        else:
+            book = ""
+            book1 = ""
+            soup = BeautifulSoup(r.content,'html.parser')
+            soup1 = BeautifulSoup(r1.content,'html.parser')
+            paragraphs = soup.find('div', {"class":"mw-parser-output"} ).find_all('p')
+            for paragraph in paragraphs:
+                book += " " + str(paragraph.text)
+            paragraphs = soup.find('div', {"class":"mw-content-ltr"} ).find_all('span')
+            for paragraph in paragraphs:
+                book += " " + str(paragraph.text)
+            paragraphs1 = soup1.find('div', {"class":"mw-parser-output"} ).find_all('p')
+            for paragraph in paragraphs1:
+                book1 += " " + str(paragraph.text)
+            paragraphs1 = soup1.find('div', {"class":"mw-content-ltr"} ).find_all('span')
+            for paragraph in paragraphs1:
+                book1 += " " + str(paragraph.text)
 
+            
+            return book.lower(),book1.lower()
 
+#TAKING BOOK NUMBER AND BOOK NAME FROM USER
 def main():
     bookNumber=0
     while bookNumber!=1 or bookNumber!=2:
         bookNumber = int(input("which you want book compare:  "))
         if bookNumber == 1:
             bookName1 = input("enter the book name:   ")
-            words = choosen1(bookName1)
+            words = webScraping(bookName1,"")
             words = cleanpunctuations(words)
             words = cleanstopwords(words)
             words = cleandigits(words)
@@ -110,7 +171,7 @@ def main():
         elif bookNumber == 2:
             bookName1 = input("enter the first book name:   ")
             bookName2 = input("enter the second book name:   ")
-            words,words1 = choosen2(bookName1,bookName2)
+            words,words1 = webScraping(bookName1,bookName2)
             words = cleanpunctuations(words)
             words = cleanstopwords(words)
             words = cleandigits(words)
@@ -120,7 +181,9 @@ def main():
             words_list,freq_list=countwords(words)
             words1_list,freq1_list=countwords(words1)
             sumOfFreq(words_list,freq_list,words1_list,freq1_list)
+            distincWords(words_list,freq_list,words1_list,freq1_list)
             break
         else:
             print("try again")
+
 main()
