@@ -1,9 +1,16 @@
 import nltk
 #nltk.download('stopwords')
+<<<<<<< HEAD
 from nltk.corpus import stopwords
 from operator import itemgetter
 from bs4 import BeautifulSoup
 import urllib
+=======
+from nltk.corpus import stopwords #for stopwords list
+from operator import itemgetter #for sorting list
+from bs4 import BeautifulSoup #for webscraping
+import urllib 
+>>>>>>> 7a7d7d5 (end of the project)
 import requests
 
 bookNumber = 0
@@ -104,8 +111,13 @@ def distincWords(word_list,freq_list,word1_list,freq1_list):
         
 #PRINT HIGHEST 20 FREQUENCY WORDS
 def printlist1(words_list,freq_list):
+    print("NO   WORD    FREQ")
     for i in range(20):
+<<<<<<< HEAD
         print(words_list[i] , freq_list[i])
+=======
+        print(i+1 , words_list[i] , freq_list[i])
+>>>>>>> 7a7d7d5 (end of the project)
 
 #WEB SCRAPING BY USER RECEIVED BOOK NAME
 def webScraping(bookName,bookName2):
@@ -125,7 +137,12 @@ def webScraping(bookName,bookName2):
             paragraphs = soup.find('div', {"class":"mw-content-ltr"} ).find_all('span')
             for paragraph in paragraphs:
                 book += " " + str(paragraph.text)
+<<<<<<< HEAD
             print(book.lower())
+=======
+            if book == "":
+                book = webScraping(bookName,bookName2)
+>>>>>>> 7a7d7d5 (end of the project)
             return book.lower()
     else:
         r1 = requests.get(website1)
